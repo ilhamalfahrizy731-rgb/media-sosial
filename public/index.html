@@ -1,0 +1,773 @@
+<!doctype html>
+<html lang="id">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>Instagram</title>
+    <style>
+      :root {
+        --bg: #0c1014;
+        --panel: #212328;
+        --line: #2f3238;
+        --text: #f5f5f5;
+        --mute: #a8a8a8;
+        --blue: #6a82fb;
+        --ig: #0095f6;
+      }
+      * {
+        box-sizing: border-box;
+        margin: 0;
+      }
+      body {
+        background: var(--bg);
+        color: var(--text);
+        font:
+          14px/18px -apple-system,
+          BlinkMacSystemFont,
+          "Segoe UI",
+          Roboto,
+          Helvetica,
+          Arial,
+          sans-serif;
+        height: 100vh;
+        overflow: hidden;
+      }
+      svg {
+        display: block;
+      }
+      button {
+        font: inherit;
+        color: inherit;
+        background: none;
+        border: 0;
+        cursor: pointer;
+      }
+      .bgGrid {
+        position: fixed;
+        inset: 0;
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 4px;
+        padding: 0 0 0 200px;
+        opacity: 0.5;
+      }
+      .bgGrid i {
+        background: #141415;
+        min-height: 240px;
+      }
+      .bgGrid + .shade {
+        position: fixed;
+        inset: 0;
+        background: rgba(0, 0, 0, 0.35);
+      }
+      .side {
+        position: fixed;
+        left: 0;
+        top: 0;
+        bottom: 0;
+        width: 72px;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 6px;
+        padding: 20px 0;
+        color: #e6e6e6;
+      }
+      .side span {
+        width: 48px;
+        height: 48px;
+        display: grid;
+        place-items: center;
+      }
+      .side .sp {
+        flex: 1;
+      }
+      .side .dot {
+        width: 24px;
+        height: 24px;
+        border-radius: 50%;
+        background: #555;
+      }
+      .close {
+        position: fixed;
+        top: 14px;
+        right: 18px;
+        width: 24px;
+        height: 24px;
+      }
+      .nav {
+        position: fixed;
+        top: 50%;
+        width: 32px;
+        height: 32px;
+        margin-top: -16px;
+        border-radius: 50%;
+        background: #fff;
+        color: #000;
+        display: grid;
+        place-items: center;
+        z-index: 5;
+      }
+      .nav.l {
+        left: 17px;
+      }
+      .nav.r {
+        right: 17px;
+      }
+      .modal {
+        position: fixed;
+        left: 50%;
+        top: 50%;
+        transform: translate(-50%, -50%);
+        width: 939px;
+        height: 585px;
+        max-width: 96vw;
+        display: flex;
+        background: var(--panel);
+        border-radius: 0 4px 4px 0;
+      }
+      .media {
+        position: relative;
+        width: 439px;
+        flex: none;
+        background: #000;
+        overflow: hidden;
+      }
+      .track {
+        display: flex;
+        height: 100%;
+        transition: transform 0.3s ease;
+      }
+      .slide {
+        flex: none;
+        width: 100%;
+        height: 100%;
+        background: linear-gradient(160deg, #3a3d44, #16181c);
+      }
+      .slide img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+      }
+      .arr {
+        position: absolute;
+        top: 50%;
+        margin-top: -16px;
+        width: 32px;
+        height: 32px;
+        border-radius: 50%;
+        background: rgba(26, 26, 26, 0.8);
+        color: #fff;
+        display: grid;
+        place-items: center;
+      }
+      .arr.l {
+        left: 8px;
+      }
+      .arr.r {
+        right: 8px;
+      }
+      .arr[hidden] {
+        display: none;
+      }
+      .dots {
+        position: absolute;
+        bottom: 14px;
+        left: 0;
+        right: 0;
+        display: flex;
+        justify-content: center;
+        gap: 4px;
+      }
+      .dots b {
+        width: 6px;
+        height: 6px;
+        border-radius: 50%;
+        background: rgba(255, 255, 255, 0.45);
+      }
+      .dots b.on {
+        background: #fff;
+      }
+      .right {
+        flex: 1;
+        min-width: 0;
+        display: flex;
+        flex-direction: column;
+      }
+      .hd {
+        height: 60px;
+        flex: none;
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        padding: 14px 16px;
+        border-bottom: 1px solid var(--line);
+      }
+      .hd .who {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        flex: 1;
+      }
+      .hd a {
+        color: var(--blue);
+        font-weight: 600;
+      }
+      .u {
+        font-weight: 600;
+      }
+      .badge {
+        display: inline-block;
+        vertical-align: -1px;
+        margin-left: 4px;
+      }
+      .list {
+        flex: 1;
+        overflow-y: auto;
+        padding: 16px 16px 8px;
+        scrollbar-width: none;
+      }
+      .list::-webkit-scrollbar {
+        display: none;
+      }
+      .c {
+        display: grid;
+        grid-template-columns: auto minmax(0, 1fr) auto;
+        column-gap: 12px;
+        align-items: start;
+        margin-bottom: 16px;
+      }
+      .c.new {
+        animation: in 0.35s;
+      }
+      @keyframes in {
+        from {
+          background: #2c2f36;
+        }
+      }
+      .cb {
+        flex: 1;
+        min-width: 0;
+        word-wrap: break-word;
+      }
+      .cb p{white-space:normal;overflow-wrap:anywhere}
+      .meta {
+        display: flex;
+        gap: 12px;
+        margin-top: 6px;
+        font-size: 12px;
+        color: var(--mute);
+        line-height: 16px;
+      }
+      .meta b {
+        font-weight: 600;
+      }
+      .heart {
+        width: 12px;
+        height: 12px;
+        margin: 8px 0 0 8px;
+        flex: none;
+        color: var(--mute);
+      }
+      .heart.on {
+        color: #ff3040;
+      }
+      .heart.on path {
+        fill: #ff3040;
+        stroke: #ff3040;
+      }
+      .rep {
+        display: flex;
+        align-items: center;
+        gap: 14px;
+        margin: -6px 0 16px 52px;
+        font-size: 12px;
+        color: var(--mute);
+        font-weight: 600;
+      }
+      .rep i {
+        width: 24px;
+        border-top: 1px solid #555;
+      }
+      .av {
+        position: relative;
+        flex: none;
+        width: var(--s, 40px);
+        height: var(--s, 40px);
+        border-radius: 50%;
+        display: grid;
+        place-items: center;
+        font-weight: 600;
+        color: #fff;
+        background: var(--bgc, #555);
+        overflow: hidden;
+        font-size: calc(var(--s, 40px) * 0.4);
+      }
+      .av img {
+        position: absolute;
+        inset: 0;
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+      }
+      .ring {
+        align-self: start;
+        width: fit-content;
+        height: fit-content;
+        padding: 4px;
+        border-radius: 50%;
+        background: linear-gradient(45deg, #fcaf45, #e1306c, #833ab4);
+        flex: none;
+      }
+      .ring .av {
+        box-shadow: 0 0 0 2px var(--panel);
+      }
+      .ft {
+        flex: none;
+        border-top: 1px solid var(--line);
+      }
+      .acts {
+        display: flex;
+        align-items: center;
+        gap: 16px;
+        padding: 8px 16px 4px;
+      }
+      .acts .sv {
+        margin-left: auto;
+      }
+      .acts button:hover {
+        opacity: 0.6;
+      }
+      .likes {
+        padding: 4px 16px 0;
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        font-size: 14px;
+      }
+      .likes .m {
+        display: flex;
+      }
+      .likes .m .av {
+        box-shadow: 0 0 0 2px var(--panel);
+      }
+      .likes .m .av + .av {
+        margin-left: -8px;
+      }
+      .date {
+        padding: 2px 16px 12px;
+        font-size: 12px;
+        color: var(--mute);
+      }
+      .add {
+        height: 55px;
+        border-top: 1px solid var(--line);
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        padding: 0 16px;
+        position: relative;
+      }
+      .add input {
+        flex: 1;
+        background: none;
+        border: 0;
+        outline: 0;
+        color: var(--text);
+        font: inherit;
+        min-width: 0;
+      }
+      .add input::placeholder {
+        color: var(--mute);
+      }
+      .post {
+        color: var(--ig);
+        font-weight: 600;
+        opacity: 0;
+        pointer-events: none;
+      }
+      .post.show {
+        opacity: 1;
+        pointer-events: auto;
+      }
+      .post:hover {
+        color: #fff;
+      }
+      .emo {
+        position: absolute;
+        bottom: 52px;
+        left: 8px;
+        width: 224px;
+        padding: 8px;
+        display: flex;
+        flex-wrap: wrap;
+        gap: 2px;
+        background: #262626;
+        border: 1px solid var(--line);
+        border-radius: 8px;
+        font-size: 20px;
+      }
+      .emo[hidden] {
+        display: none;
+      }
+      .emo button {
+        width: 34px;
+        height: 34px;
+      }
+      a.m {
+        color: #e0f1ff;
+      }
+      @media (max-width: 820px) {
+        .side,
+        .nav,
+        .close {
+          display: none;
+        }
+        .modal {
+          flex-direction: column;
+          height: 96vh;
+          width: 100vw;
+          max-width: 100vw;
+        }
+        .media {
+          width: 100%;
+          height: 46%;
+        }
+        .slide img {
+          object-position: center;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="bgGrid"><i></i><i></i><i></i><i></i><i></i><i></i></div>
+    <div class="shade"></div>
+    <nav class="side" id="side"></nav>
+    <button class="close" aria-label="Close">
+      <svg
+        width="24"
+        height="24"
+        viewBox="0 0 24 24"
+        stroke="#fff"
+        stroke-width="3"
+        stroke-linecap="round"
+      >
+        <path d="M3 3l18 18M21 3L3 21" />
+      </svg>
+    </button>
+    <button class="nav l" aria-label="Previous post">
+      <svg
+        width="16"
+        height="16"
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="#000"
+        stroke-width="2.5"
+        stroke-linecap="round"
+        stroke-linejoin="round"
+      >
+        <path d="M15 4l-8 8 8 8" />
+      </svg>
+    </button>
+    <button class="nav r" aria-label="Next post">
+      <svg
+        width="16"
+        height="16"
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="#000"
+        stroke-width="2.5"
+        stroke-linecap="round"
+        stroke-linejoin="round"
+      >
+        <path d="M9 4l8 8-8 8" />
+      </svg>
+    </button>
+
+    <main class="modal">
+      <section class="media">
+        <div class="track" id="track"></div>
+        <button class="arr l" id="prev" hidden aria-label="Back">
+          <svg
+            width="16"
+            height="16"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="#fff"
+            stroke-width="2.5"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+          >
+            <path d="M15 4l-8 8 8 8" />
+          </svg>
+        </button>
+        <button class="arr r" id="next" aria-label="Next">
+          <svg
+            width="16"
+            height="16"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="#fff"
+            stroke-width="2.5"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+          >
+            <path d="M9 4l8 8-8 8" />
+          </svg>
+        </button>
+        <div class="dots" id="dots"></div>
+      </section>
+      <section class="right">
+        <header class="hd">
+          <div class="ring" id="hdAv"></div>
+          <div class="who">
+            <span class="u">bernadyaribka</span><span id="hdBadge"></span
+            ><span>•</span><a>Follow</a>
+          </div>
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="#fff">
+            <circle cx="12" cy="12" r="1.6" />
+            <circle cx="6" cy="12" r="1.6" />
+            <circle cx="18" cy="12" r="1.6" />
+          </svg>
+        </header>
+        <div class="list" id="list">
+          <div class="c">
+            <div class="ring" id="capAv"></div>
+            <div class="cb">
+              <p>
+                <span class="u">bernadyaribka</span
+                ><span id="capBadge"></span> yo jenenge urip
+              </p>
+              <div class="meta">
+                <span>9w</span><span><b>See translation</b></span>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="ft">
+          <div class="acts" id="acts"></div>
+          <div class="likes">
+            <span class="m" id="lk"></span
+            ><span
+              >Liked by <b class="u">tannrap</b> and
+              <b class="u">598K others</b></span
+            >
+          </div>
+          <div class="date">August 2</div>
+          <form class="add" id="form" autocomplete="off">
+            <div class="emo" id="emo" hidden></div>
+            <button type="button" id="emoBtn" aria-label="Emoji">
+              <svg
+                width="24"
+                height="24"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="#f5f5f5"
+                stroke-width="1.6"
+                stroke-linecap="round"
+              >
+                <circle cx="12" cy="12" r="10" />
+                <path d="M8 14.5c1 1.5 2.3 2.2 4 2.2s3-.7 4-2.2" />
+                <circle cx="8.8" cy="9.5" r=".6" fill="#f5f5f5" />
+                <circle cx="15.2" cy="9.5" r=".6" fill="#f5f5f5" />
+              </svg>
+            </button>
+            <input
+              id="inp"
+              placeholder="Add a comment…"
+              maxlength="2200"
+            /><button class="post" id="postBtn">Post</button>
+          </form>
+        </div>
+      </section>
+    </main>
+
+    <script>
+      const IMAGES = Array.from({ length: 8 }, (_, i) => `img/${i + 1}.jpg`); // taruh foto kamu di public/img/1.jpg … 8.jpg
+      const AVATAR = "img/avatar.jpg"; // foto profil bernadyaribka (opsional)
+      const $ = (s) => document.querySelector(s);
+      const esc = (s) =>
+        s.replace(
+          /[&<>"']/g,
+          (c) =>
+            ({
+              "&": "&amp;",
+              "<": "&lt;",
+              ">": "&gt;",
+              '"': "&quot;",
+              "'": "&#39;",
+            })[c],
+        );
+      const hash = (s) =>
+        [...s].reduce((h, c) => (h * 31 + c.charCodeAt(0)) >>> 0, 7);
+      const badge = (n = 12) =>
+        `<svg class="badge" width="${n}" height="${n}" viewBox="0 0 40 40"><path fill="#0095f6" d="M19.998 3.094 14.638 0l-2.972 5.15H5.432v6.354L0 14.64 3.094 20 0 25.359l5.432 3.137v5.905h5.975L14.638 40l5.36-3.094L25.358 40l3.232-5.6h6.162v-6.01L40 25.359 36.905 20 40 14.641l-5.248-3.03v-6.46h-6.419L25.358 0l-5.36 3.094Z"/><path d="M12 20.6l5.4 5.4 10.6-11" fill="none" stroke="#fff" stroke-width="3.6" stroke-linecap="round" stroke-linejoin="round"/></svg>`;
+      const av = (src, name, s = 40) =>
+        `<span class="av" style="--s:${s}px;--bgc:hsl(${hash(name) % 360} 30% 38%)">${esc(name[0] || "?").toUpperCase()}${src ? `<img src="${esc(src)}" alt="" referrerpolicy="no-referrer" onerror="this.remove()">` : ""}</span>`;
+      const IC = {
+        heart:
+          '<path d="M16.792 3.904A4.989 4.989 0 0 1 21.5 9.122c0 3.072-2.652 4.959-5.197 7.222-2.512 2.243-3.865 3.469-4.303 3.752-.477-.309-2.143-1.823-4.303-3.752C5.141 14.072 2.5 12.167 2.5 9.122a4.989 4.989 0 0 1 4.708-5.218 4.21 4.21 0 0 1 3.675 1.941c.84 1.175.98 1.763 1.12 1.763s.278-.588 1.11-1.766a4.17 4.17 0 0 1 3.679-1.938Z"/>',
+        cmt: '<path d="M20.656 17.008a9.993 9.993 0 1 0-3.59 3.615L22 22Z"/>',
+        rep: '<path d="M17 2l4 4-4 4M3 11V9a3 3 0 0 1 3-3h15M7 22l-4-4 4-4M21 13v2a3 3 0 0 1-3 3H3"/>',
+        send: '<path d="M22 3L9.2 10.1M11.7 20.3L22 3H2l7.2 7.1z"/>',
+        save: '<path d="M20 21l-8-7.56L4 21V3h16z"/>',
+        home: '<path d="M3 11l9-8 9 8v10h-6v-7H9v7H3z"/>',
+        reel: '<rect x="3" y="3" width="18" height="18" rx="5"/><path d="M10 8.5l6 3.5-6 3.5z"/>',
+        search: '<circle cx="11" cy="11" r="7.5"/><path d="M21 21l-4.6-4.6"/>',
+        plus: '<path d="M12 4v16M4 12h16"/>',
+        menu: '<path d="M3 6h18M3 12h18M3 18h18"/>',
+        apps: '<rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/>',
+      };
+      const ico = (k, n = 24, c = "currentColor") =>
+        `<svg width="${n}" height="${n}" viewBox="0 0 24 24" fill="none" stroke="${c}" stroke-width="2" stroke-linejoin="round" stroke-linecap="round">${IC[k]}</svg>`;
+
+      // sidebar, header, caption, actions
+      $("#side").innerHTML =
+        ["home", "reel", "send", "search", "heart", "plus"]
+          .map((k) => `<span>${ico(k, 26)}</span>`)
+          .join("") +
+        '<span><i class="dot"></i></span><i class="sp"></i><span>' +
+        ico("menu", 26) +
+        "</span><span>" +
+        ico("apps", 26) +
+        "</span>";
+      $("#hdAv").innerHTML = av(AVATAR, "bernadyaribka", 32);
+      $("#capAv").innerHTML = av(AVATAR, "bernadyaribka", 32);
+      $("#hdBadge").innerHTML = badge();
+      $("#capBadge").innerHTML = badge();
+      $("#acts").innerHTML =
+        ["heart", "cmt", "rep", "send"]
+          .map((k) => `<button aria-label="${k}">${ico(k)}</button>`)
+          .join("") +
+        `<button class="sv" aria-label="Save">${ico("save")}</button>`;
+      $("#lk").innerHTML = av("", "t", 18) + av("", "w", 18);
+
+      // carousel
+      let idx = 0;
+      $("#track").innerHTML = IMAGES.map(
+        (s) =>
+          `<div class="slide"><img src="${s}" alt="" onerror="this.remove()"></div>`,
+      ).join("");
+      $("#dots").innerHTML = IMAGES.map(() => "<b></b>").join("");
+      function go(n) {
+        idx = Math.max(0, Math.min(IMAGES.length - 1, n));
+        $("#track").style.transform = `translateX(-${idx * 100}%)`;
+        [...$("#dots").children].forEach((d, i) =>
+          d.classList.toggle("on", i === idx),
+        );
+        $("#prev").hidden = !idx;
+        $("#next").hidden = idx === IMAGES.length - 1;
+      }
+      $("#prev").onclick = () => go(idx - 1);
+      $("#next").onclick = () => go(idx + 1);
+      addEventListener("keydown", (e) => {
+        if (document.activeElement.id === "inp") return;
+        if (e.key === "ArrowLeft") go(idx - 1);
+        if (e.key === "ArrowRight") go(idx + 1);
+      });
+      go(0);
+
+      // comments
+      const ago = (t) => {
+        const s = Math.max(1, ((Date.now() - t) / 1e3) | 0);
+        for (const [u, n] of [
+          ["w", 604800],
+          ["d", 86400],
+          ["h", 3600],
+          ["m", 60],
+        ])
+          if (s >= n) return ((s / n) | 0) + u;
+        return s + "s";
+      };
+      const liked = new Set(JSON.parse(localStorage.getItem("liked") || "[]"));
+      const fmt = (n) =>
+        n >= 1e6
+          ? (n / 1e6).toFixed(1) + "M"
+          : n >= 1e4
+            ? ((n / 1e3) | 0) + "K"
+            : n;
+      function node(c, isNew) {
+        const d = document.createElement("div");
+        d.dataset.id = c.id;
+        const ring = hash(c.username) % 3 === 0 ? "ring" : "";
+        const body = esc(c.text).replace(
+          /@[\w.]+/g,
+          (m) => `<a class="m">${m}</a>`,
+        );
+        const av_ = av(c.profile_pic_url, c.username);
+        d.innerHTML =
+          `<div class="c${isNew ? " new" : ""}">${ring ? `<div class="ring">${av(c.profile_pic_url, c.username, 36)}</div>` : av_}
+  <div class="cb"><p><span class="u">${esc(c.username)}</span>${c.verified ? badge() : ""} ${body}</p>
+  <div class="meta"><span>${ago(c.created_at)}</span><span class="lc">${c.likes ? `<b>${fmt(c.likes)} ${c.likes > 1 ? "likes" : "like"}</b>` : ""}</span><b>Reply</b></div></div>
+  <button class="heart${liked.has(c.id) ? " on" : ""}" aria-label="Like"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4">${IC.heart}</svg></button></div>` +
+          (c.replies
+            ? `<div class="rep"><i></i>View replies (${c.replies})</div>`
+            : "");
+        const h = d.querySelector(".heart");
+        h.onclick = async () => {
+          const on = !liked.has(c.id);
+          on ? liked.add(c.id) : liked.delete(c.id);
+          localStorage.setItem("liked", JSON.stringify([...liked]));
+          h.classList.toggle("on", on);
+          const r = await fetch(`/api/comments/${c.id}/like`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ delta: on ? 1 : -1 }),
+          }).then((r) => r.json());
+          d.querySelector(".lc").innerHTML = r.likes
+            ? `<b>${fmt(r.likes)} ${r.likes > 1 ? "likes" : "like"}</b>`
+            : "";
+        };
+        return d;
+      }
+      fetch("/api/comments")
+        .then((r) => r.json())
+        .then((rows) => rows.forEach((c) => $("#list").append(node(c))));
+
+      // form
+      const inp = $("#inp"),
+        btn = $("#postBtn");
+      inp.oninput = () => btn.classList.toggle("show", !!inp.value.trim());
+      $("#form").onsubmit = async (e) => {
+        e.preventDefault();
+        const text = inp.value.trim();
+        if (!text) return;
+        inp.value = "";
+        btn.classList.remove("show");
+        const r = await fetch("/api/comments", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ text }),
+        });
+        if (!r.ok) return;
+        const n = node(await r.json(), true);
+        $("#list").children[0].after(n);
+        $("#list").scrollTo({ top: 0, behavior: "smooth" });
+      };
+      $("#emo").innerHTML = [
+        "😂",
+        "❤️",
+        "🔥",
+        "🙌",
+        "😍",
+        "😭",
+        "👏",
+        "🥹",
+        "😮",
+        "💯",
+        "🤍",
+        "👍",
+      ]
+        .map((x) => `<button type="button">${x}</button>`)
+        .join("");
+      $("#emoBtn").onclick = () => ($("#emo").hidden = !$("#emo").hidden);
+      $("#emo").onclick = (e) => {
+        if (e.target.tagName === "BUTTON") {
+          inp.value += e.target.textContent;
+          inp.oninput();
+          inp.focus();
+        }
+      };
+    </script>
+  </body>
+</html>
